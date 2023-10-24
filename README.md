@@ -1,1 +1,1 @@
-# ceng477-hw1-raytracer
+# a simple raytracer
