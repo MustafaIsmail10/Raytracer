@@ -6,8 +6,8 @@
 
 namespace parser
 {
-    //Notice that all the structures are as simple as possible
-    //so that you are not enforced to adopt any style or design.
+    // Notice that all the structures are as simple as possible
+    // so that you are not enforced to adopt any style or design.
     struct Vec3f
     {
         float x, y, z;
@@ -20,7 +20,7 @@ namespace parser
 
     struct Vec4f
     {
-        float x, y, z, w;
+        float l, r, b, t;
     };
 
     struct Camera
@@ -78,7 +78,7 @@ namespace parser
 
     struct Scene
     {
-        //Data
+        // Data
         Vec3i background_color;
         float shadow_ray_epsilon;
         int max_recursion_depth;
@@ -91,9 +91,16 @@ namespace parser
         std::vector<Triangle> triangles;
         std::vector<Sphere> spheres;
 
-        //Functions
+        // Functions
         void loadFromXml(const std::string &filepath);
     };
-}
+
+    struct Ray
+    {
+        Vec3f e;
+        Vec3f d;
+        void getPointFromTime(float t);
+    };
+} // namespace parser
 
 #endif

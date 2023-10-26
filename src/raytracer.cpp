@@ -1,7 +1,7 @@
-#include <iostream>
 #include "parser.h"
 #include "ppm.h"
 #include "utils.h"
+#include <iostream>
 
 typedef unsigned char RGB[3];
 
@@ -15,26 +15,31 @@ int main(int argc, char *argv[])
     for (int cam_num = 0; cam_num < scene.cameras.size(); cam_num++)
     {
         parser::Camera current_camera = scene.cameras[cam_num];
-        unsigned char *image = new unsigned char[current_camera.image_width * current_camera.image_height * 3];
-        float pixel_width = (current_camera.near_plane.y - current_camera.near_plane.x) / current_camera.image_width;
-        float pixel_height = (current_camera.near_plane.w - current_camera.near_plane.z) / current_camera.image_height;
+        unsigned char *image = new unsigned char[current_camera.image_width *
+                                                 current_camera.image_height * 3];
+        float pixel_width =
+            (current_camera.near_plane.r - current_camera.near_plane.l) /
+            current_camera.image_width;
+        float pixel_height =
+            (current_camera.near_plane.t - current_camera.near_plane.b) /
+            current_camera.image_height;
         // Redndering the image of the current camera
-        parser::Vec3f r;  
+        // Go through each pixel
+        parser::Vec3f r;
         add_vectors(scene.vertex_data[5], scene.vertex_data[6], r);
         std::cout << r.x << " " << r.y << " " << r.z << std::endl;
     }
 
-    const RGB BAR_COLOR[8] =
-        {
-            {255, 255, 255}, // 100% White
-            {255, 255, 0},   // Yellow
-            {0, 255, 255},   // Cyan
-            {0, 255, 0},     // Green
-            {255, 0, 255},   // Magenta
-            {255, 0, 0},     // Red
-            {0, 0, 255},     // Blue
-            {0, 0, 0},       // Black
-        };
+    const RGB BAR_COLOR[8] = {
+        {255, 255, 255}, // 100% White
+        {255, 255, 0},   // Yellow
+        {0, 255, 255},   // Cyan
+        {0, 255, 0},     // Green
+        {255, 0, 255},   // Magenta
+        {255, 0, 0},     // Red
+        {0, 0, 255},     // Blue
+        {0, 0, 0},       // Black
+    };
 
     int width = 1920, height = 1080;
     int columnWidth = width / 8;
