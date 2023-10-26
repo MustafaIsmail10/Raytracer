@@ -3,28 +3,34 @@
 
 #include "parser.h"
 
-template <typename X, typename Y, typename Z>
-void add_vectors(X &v1, Y &v2, Z &result)
+template <typename X, typename Y>
+parser::Vec3f add_vectors(X &v1, Y &v2)
 {
+    parser::Vec3f result; 
     result.x = v1.x + v2.x;
     result.y = v1.y + v2.y;
     result.z = v1.z + v2.z;
+    return result;
 }
 
-template <typename X, typename Y, typename Z>
-void subtract_vectors(X &v1, Y &v2, Z &result)
+template <typename X, typename Y>
+parser::Vec3f subtract_vectors(X &v1, Y &v2)
 {
+    parser::Vec3f result; 
     result.x = v1.x - v2.x;
     result.y = v1.y - v2.y;
     result.z = v1.z - v2.z;
+    return result;
 }
 
-template <typename Y, typename Z>
-void multiply_scalar_with_vector(float &s, Y &v1, Z &result)
+template <typename Y>
+parser::Vec3f  multiply_scalar_with_vector(float &s, Y &v1, Y &result)
 {
+    parser::Vec3f resutl;
     result.x = v1.x * s;
     result.y = v1.y * s;
     result.z = v1.z * s;
+    return result;
 }
 
 template <typename X, typename Y, typename Z>
