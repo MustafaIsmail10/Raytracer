@@ -36,14 +36,6 @@ int main(int argc, char *argv[])
                 ray.d = compute_pixel_ray_direction(current_camera.position, u, v, q, row, col, pixel_width, pixel_height);
             }
         }
-
-
-        std::cout << "v = " << v.x << " " << v.y << " " << v.z << std::endl;
-        std::cout << "w = " << w.x << " " << w.y << " " << w.z << std::endl;
-        std::cout << "u = " << u.x << " " << u.y << " " << u.z << std::endl;
-        std::cout << "q = " << q.x << " " << q.y << " " << q.z << std::endl;
-        
-
     }
 
     const RGB BAR_COLOR[8] = {

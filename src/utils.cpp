@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "parser.h"
+#include <iostream>
 
 int add(int x, int y) { return x + y; }
 
@@ -48,7 +49,8 @@ parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , par
     parser::Vec3f sv_v = multiply_scalar_with_vector(sv, v);
     parser::Vec3f s = subtract_vectors(su_u, sv_v);
     s = add_vectors(s, q);
-    return compute_unit_vector(subtract_vectors(s, e));
+    parser::Vec3f ray_direction = compute_unit_vector(subtract_vectors(s, e));
+    return ray_direction;
 }
 
 
