@@ -39,7 +39,7 @@ This function computes the ray for a given pixel in the image. The ray is comput
 r(t) = e + (s - e)d
 where e is the camera position, s is the point on the near plane corresponding to the pixel
 */
-parser::Vec3f compute_pixel_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
+parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
 {
     // Compute s
     float su = (col + 0.5) * pixel_width;
@@ -50,3 +50,6 @@ parser::Vec3f compute_pixel_direction(parser::Vec3f e, parser::Vec3f u , parser:
     s = add_vectors(s, q);
     return compute_unit_vector(subtract_vectors(s, e));
 }
+
+
+

@@ -44,9 +44,6 @@ parser::Vec3f divide_vector_by_scalar(float s, Y &v1)
     return result;
 }
 
-
-
-
 template <typename X, typename Y>
 parser::Vec3f cross_product(X &v1, Y &v2)
 {
@@ -63,15 +60,15 @@ float dot_product(X &v1, Y &v2)
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-parser::Vec3f compute_unit_vector(parser::Vec3f v)
+template <typename X>
+parser::Vec3f compute_unit_vector(X v)
 {
     float magnitude = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
     return divide_vector_by_scalar(magnitude, v);
 }
 
-
 void process_image(parser::Camera *, unsigned char *);
 parser::Vec3f compute_image_corner(const parser::Camera &camera, parser::Vec3f u, parser::Vec3f v, parser::Vec3f w);
-parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height);
+parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u, parser::Vec3f v, parser::Vec3f q, int row, int col, float pixel_width, float pixel_height);
 
 #endif
