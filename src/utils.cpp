@@ -53,5 +53,24 @@ parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , par
     return ray_direction;
 }
 
+parser::Vec3f compute_triangle_normal(parser::Scene &scene, parser::Triangle &triangle)
+{
+    // Vertext ID of the first VertexData is 1
+    parser::Vec3f v0 = scene.vertex_data[triangle.indices.v0_id - 1];
+    parser::Vec3f v1 = scene.vertex_data[triangle.indices.v1_id - 1];
+    parser::Vec3f v2 = scene.vertex_data[triangle.indices.v2_id - 1];
+    parser::Vec3f v0v1 = subtract_vectors(v1, v0);
+    parser::Vec3f v0v2 = subtract_vectors(v2, v0);
+    return compute_unit_vector(cross_product(v0v1, v0v2));
+}
 
-
+void compute_all_triangle_normals(parser::Scene &scene)
+{
+    // For each triangle
+    for (int i = 0; i < scene.triangles.size(); i++)
+    {
+        parser::Triangle triangle = scene.triangles[i];
+        parser::Vec3f normal = compute_triangle_normal(scene, triangle);
+    }
+    // Store the normal in the triangle
+}
