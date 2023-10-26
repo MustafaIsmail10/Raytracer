@@ -2,11 +2,12 @@
 #define __utils_h__
 
 #include "parser.h"
+#include <cmath>
 
 template <typename X, typename Y>
 parser::Vec3f add_vectors(X &v1, Y &v2)
 {
-    parser::Vec3f result; 
+    parser::Vec3f result;
     result.x = v1.x + v2.x;
     result.y = v1.y + v2.y;
     result.z = v1.z + v2.z;
@@ -16,7 +17,7 @@ parser::Vec3f add_vectors(X &v1, Y &v2)
 template <typename X, typename Y>
 parser::Vec3f subtract_vectors(X &v1, Y &v2)
 {
-    parser::Vec3f result; 
+    parser::Vec3f result;
     result.x = v1.x - v2.x;
     result.y = v1.y - v2.y;
     result.z = v1.z - v2.z;
@@ -24,26 +25,53 @@ parser::Vec3f subtract_vectors(X &v1, Y &v2)
 }
 
 template <typename Y>
-parser::Vec3f  multiply_scalar_with_vector(float &s, Y &v1, Y &result)
+parser::Vec3f multiply_scalar_with_vector(float s, Y &v1)
 {
-    parser::Vec3f resutl;
+    parser::Vec3f result;
     result.x = v1.x * s;
     result.y = v1.y * s;
     result.z = v1.z * s;
     return result;
 }
 
-template <typename X, typename Y, typename Z>
-void cross_product(X &v1, Y &v2, Z &result)
+template <typename Y>
+parser::Vec3f divide_vector_by_scalar(float s, Y &v1)
 {
+    parser::Vec3f result;
+    result.x = v1.x / s;
+    result.y = v1.y / s;
+    result.z = v1.z / s;
+    return result;
+}
+
+
+
+
+template <typename X, typename Y>
+parser::Vec3f cross_product(X &v1, Y &v2)
+{
+    parser::Vec3f result;
     result.x = v1.y * v2.z - v1.z * v2.y;
     result.y = v1.z * v2.x - v1.x * v2.z;
     result.z = v1.x * v2.y - v1.y * v2.x;
+    return result;
 }
 
-int add(int x, int y);
+template <typename X, typename Y>
+float dot_product(X &v1, Y &v2)
+{
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+parser::Vec3f compute_unit_vector(parser::Vec3f v)
+{
+    float magnitude = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    return divide_vector_by_scalar(magnitude, v);
+}
+
 
 void process_image(parser::Camera *, unsigned char *);
-parser::Ray get_ray(parser::Camera *, int, int);
+parser::Vec3f compute_image_corner(const parser::Camera &camera, parser::Vec3f u, parser::Vec3f v, parser::Vec3f w);
+parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height);
 
 #endif
