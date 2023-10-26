@@ -1,16 +1,16 @@
 #include "ppm.h"
 #include <stdexcept>
 
-void write_ppm(const char* filename, unsigned char* data, int width, int height)
+void write_ppm(const char *filename, unsigned char *data, int width, int height)
 {
     FILE *outfile;
 
-    if ((outfile = fopen(filename, "w")) == NULL) 
+    if ((outfile = fopen(filename, "w")) == NULL)
     {
         throw std::runtime_error("Error: The ppm file cannot be opened for writing.");
     }
 
-    (void) fprintf(outfile, "P3\n%d %d\n255\n", width, height);
+    (void)fprintf(outfile, "P3\n%d %d\n255\n", width, height);
 
     unsigned char color;
     for (size_t j = 0, idx = 0; j < height; ++j)
@@ -23,17 +23,17 @@ void write_ppm(const char* filename, unsigned char* data, int width, int height)
 
                 if (i == width - 1 && c == 2)
                 {
-                    (void) fprintf(outfile, "%d", color);
+                    (void)fprintf(outfile, "%d", color);
                 }
                 else
                 {
-                    (void) fprintf(outfile, "%d ", color);
+                    (void)fprintf(outfile, "%d ", color);
                 }
             }
         }
 
-        (void) fprintf(outfile, "\n");
+        (void)fprintf(outfile, "\n");
     }
 
-    (void) fclose(outfile);
+    (void)fclose(outfile);
 }
