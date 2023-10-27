@@ -99,6 +99,7 @@ namespace parser
     {
         Vec3f e;
         Vec3f d;
+        unsigned int depth;
         void getPointFromTime(float t);
     };
 } // namespace parser
