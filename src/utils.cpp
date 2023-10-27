@@ -4,14 +4,24 @@
 
 int add(int x, int y) { return x + y; }
 
-// void process_image(parser::Camera *camera, unsigned char *image)
-// {
-//     // For each image row
-//     // For each image col
-//     // Get the ray
-//     parser::Ray ray = compute_pixel_ray_direction(camera, 0, 1);
-//     // REST OF ALGO
-// }
+parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
+{
+    parser::Vec3f result{0, 0, 0};
+    if (camera_ray.depth > scene.max_recursion_depth)
+    {
+        return result;
+    }
+
+    // if (closet_hit(camera_ray, scene))
+    // {
+    //     parser::Vec3f intersection_point = camera_ray.getPointFromTime(camera_ray.t);
+    //     parser::Vec3f normal = compute_normal(camera_ray, scene);
+    //     parser::Material material = scene.materials[camera_ray.material_id];
+    //     result = compute_diffuse_shading(material, normal, intersection_point, scene.point_lights);
+    // }
+
+    return result;
+}
 
 /*
 This function computes the image corner for a given camera. The image corner is computed as follows:
@@ -40,12 +50,12 @@ This function computes the ray for a given pixel in the image. The ray is comput
 r(t) = e + (s - e)d
 where e is the camera position, s is the point on the near plane corresponding to the pixel
 */
-parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
+parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u, parser::Vec3f v, parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
 {
     // Compute s
     float su = (col + 0.5) * pixel_width;
     float sv = (row + 0.5) * pixel_height;
-    parser::Vec3f su_u =  multiply_scalar_with_vector(su, u);
+    parser::Vec3f su_u = multiply_scalar_with_vector(su, u);
     parser::Vec3f sv_v = multiply_scalar_with_vector(sv, v);
     parser::Vec3f s = subtract_vectors(su_u, sv_v);
     s = add_vectors(s, q);
@@ -53,5 +63,26 @@ parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , par
     return ray_direction;
 }
 
-
-
+/*
+This function computer the diffuse shading a point given the material, normal, point lights.
+*/
+parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, std::vector<parser::PointLight> point_lights)
+{
+    parser::Vec3f result{0, 0, 0};
+    for (int i = 0; i < point_lights.size(); i++)
+    {
+        parser::PointLight current_light = point_lights[i];
+        parser::Vec3f light_vector = subtract_vectors(current_light.position, intersection_point);
+        parser::Vec3f light_direction = compute_unit_vector(light_vector);
+        float cos_angle = dot_product(light_direction, normal);
+        if (cos_angle > 0)
+        {
+            float light_distance_square = dot_product(light_vector, light_vector);
+            parser::Vec3f light_indensity = divide_vector_by_scalar(light_distance_square, current_light.intensity);
+            parser::Vec3f diffuse = multiply_scalar_with_vector(cos_angle, material.diffuse);
+            diffuse = multiply_vector_with_vector(diffuse, light_indensity);
+            result = add_vectors(result, diffuse);
+        }
+    }
+    return result;
+}
