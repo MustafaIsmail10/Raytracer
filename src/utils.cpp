@@ -1,7 +1,5 @@
 #include "utils.h"
 
-int add(int x, int y) { return x + y; }
-
 /* ============================= Vector Functions ============================= */
 parser::Vec3f add_vectors(const parser::Vec3f &v1, const parser::Vec3f &v2)
 {
