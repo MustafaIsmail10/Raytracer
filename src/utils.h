@@ -5,81 +5,19 @@
 #include <cmath>
 #include <limits>
 
-const double EPSILON = 1e-6;
+const float EPSILON = 1e-6;
 
 /* ============================= Vector Operations ============================= */
-template <typename X, typename Y>
-parser::Vec3f add_vectors(X &v1, Y &v2)
-{
-    parser::Vec3f result;
-    result.x = v1.x + v2.x;
-    result.y = v1.y + v2.y;
-    result.z = v1.z + v2.z;
-    return result;
-}
-
-template <typename X, typename Y>
-parser::Vec3f subtract_vectors(X &v1, Y &v2)
-{
-    parser::Vec3f result;
-    result.x = v1.x - v2.x;
-    result.y = v1.y - v2.y;
-    result.z = v1.z - v2.z;
-    return result;
-}
-
-template <typename Y>
-parser::Vec3f multiply_scalar_with_vector(float s, Y &v1)
-{
-    parser::Vec3f result;
-    result.x = v1.x * s;
-    result.y = v1.y * s;
-    result.z = v1.z * s;
-    return result;
-}
-
-template <typename Y, typename X>
-parser::Vec3f multiply_vector_with_vector(Y &v1, X &v2)
-{
-    parser::Vec3f result;
-    result.x = v1.x * v2.x;
-    result.y = v1.y * v2.y;
-    result.z = v1.z * v2.z;
-    return result;
-}
-
-template <typename Y>
-parser::Vec3f divide_vector_by_scalar(float s, Y &v1)
-{
-    parser::Vec3f result;
-    result.x = v1.x / s;
-    result.y = v1.y / s;
-    result.z = v1.z / s;
-    return result;
-}
-
-template <typename X, typename Y>
-parser::Vec3f cross_product(X &v1, Y &v2)
-{
-    parser::Vec3f result;
-    result.x = v1.y * v2.z - v1.z * v2.y;
-    result.y = v1.z * v2.x - v1.x * v2.z;
-    result.z = v1.x * v2.y - v1.y * v2.x;
-    return result;
-}
-
-float dot_product(parser::Vec3f &v1, parser::Vec3f &v2);
-
-template <typename X>
-parser::Vec3f compute_unit_vector(X v)
-{
-    float magnitude = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-    return divide_vector_by_scalar(magnitude, v);
-}
-
-float compute_magnitude(parser::Vec3f v);
-
-float compute_determinant(parser::Vec3f v1, parser::Vec3f v2, parser::Vec3f v3);
+parser::Vec3f add_vectors(const parser::Vec3f &v1, const parser::Vec3f &v2);
+parser::Vec3f subtract_vectors(const parser::Vec3f &v1, const parser::Vec3f &v2);
+parser::Vec3f multiply_scalar_with_vector(float s, const parser::Vec3f &v1);
+parser::Vec3f multiply_vector_with_vector(const parser::Vec3f &v1, const parser::Vec3f &v2);
+parser::Vec3f divide_vector_by_scalar(float s, const parser::Vec3f &v1);
+parser::Vec3f cross_product(const parser::Vec3f &v1, const parser::Vec3f &v2);
+parser::Vec3f compute_unit_vector(const parser::Vec3f &v);
+float dot_product(const parser::Vec3f &v1, const parser::Vec3f &v2);
+float compute_magnitude(const parser::Vec3f &v);
+float compute_determinant(const parser::Vec3f &v1, const parser::Vec3f &v2, const parser::Vec3f &v3);
 
 /* ============================= Pixel Processing Functions ============================= */
 parser::Vec3i compute_color(parser::Ray camera_ray, parser::Scene &scene);
