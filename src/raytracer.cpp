@@ -34,6 +34,10 @@ int main(int argc, char *argv[])
             {
                 parser::Ray ray;
                 ray.d = compute_pixel_ray_direction(current_camera.position, u, v, q, row, col, pixel_width, pixel_height);
+                ray.e = current_camera.position;
+                // Function below should return an RGB color
+                // TODO: Add function to clamp the color to 0-255
+                compute_color(ray, scene);
             }
         }
     }

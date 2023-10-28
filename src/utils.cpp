@@ -1,11 +1,8 @@
 #include "utils.h"
-#include "parser.h"
-#include <iostream>
 
 int add(int x, int y) { return x + y; }
 
-/* ============================= Vector Operations ============================= */
-
+/* ============================= Vector Functions ============================= */
 float dot_product(parser::Vec3f &v1, parser::Vec3f &v2)
 {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -23,23 +20,33 @@ float compute_determinant(parser::Vec3f v1, parser::Vec3f v2, parser::Vec3f v3)
            v1.z * (v2.x * v3.y - v2.y * v3.x);
 }
 
-
-parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
+/* ============================= Pixel Processing Functions ============================= */
+parser::Vec3i compute_color(parser::Ray camera_ray, parser::Scene &scene)
 {
-    parser::Vec3f result{0, 0, 0};
+    parser::Vec3i result{0, 0, 0};
     if (camera_ray.depth > scene.max_recursion_depth)
     {
         return result;
     }
 
-    // if (closet_hit(camera_ray, scene))
-    // {
-    //     parser::Vec3f intersection_point = camera_ray.getPointFromTime(camera_ray.t);
-    //     parser::Vec3f normal = compute_normal(camera_ray, scene);
-    //     parser::Material material = scene.materials[camera_ray.material_id];
-    //     result = compute_diffuse_shading(material, normal, intersection_point, scene.point_lights);
-    // }
+    parser::HitRecords hit_record = find_nearest_intersection(scene, camera_ray);
+    if (hit_record.is_intersected)
+    {
+        parser::Vec3f intersection_point = camera_ray.getPointFromTime(hit_record.distance);
+        parser::Vec3f normal = hit_record.normal;
+        parser::Material material = scene.materials[hit_record.material_id];
+        // We should round here
+        parser::Vec3f diffuse_shading = compute_diffuse_shading(material, normal, intersection_point, scene.point_lights);
+        result.x = std::round(diffuse_shading.x);
+        result.y = std::round(diffuse_shading.y);
+        result.z = std::round(diffuse_shading.z);
+    }
+    else if (camera_ray.depth == 0)
+    {
+        result = scene.background_color;
+    }
 
+    // Return (0, 0, 0)
     return result;
 }
 
