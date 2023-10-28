@@ -191,8 +191,8 @@ void parser::Scene::loadFromXml(const std::string &filepath)
 
 		child = element->FirstChildElement("Indices");
 		stream << child->GetText() << std::endl;
-		stream >> triangle.indices.v0_id >> triangle.indices.v1_id >>
-			triangle.indices.v2_id;
+		stream >> triangle.face.v0_id >> triangle.face.v1_id >>
+			triangle.face.v2_id;
 
 		triangles.push_back(triangle);
 		element = element->NextSiblingElement("Triangle");
@@ -219,4 +219,9 @@ void parser::Scene::loadFromXml(const std::string &filepath)
 		spheres.push_back(sphere);
 		element = element->NextSiblingElement("Sphere");
 	}
+}
+
+parser::Vec3f parser::Ray::getPointFromTime(float t)
+{
+	return parser::Vec3f{e.x + t * d.x, e.y + t * d.y, e.z + t * d.z};
 }
