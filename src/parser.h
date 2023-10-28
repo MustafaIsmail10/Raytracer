@@ -66,6 +66,7 @@ namespace parser
     struct Triangle
     {
         int material_id;
+        Vec3f normal;
         Face indices;
     };
 
@@ -74,6 +75,7 @@ namespace parser
         int material_id;
         int center_vertex_id;
         float radius;
+        Vec3f normal;
     };
 
     struct Scene
@@ -99,7 +101,15 @@ namespace parser
     {
         Vec3f e;
         Vec3f d;
-        void getPointFromTime(float t);
+        Vec3f getPointFromTime(float t);
+    };
+
+    struct HitRecords
+    {
+        Vec3f intersection_point;
+        Vec3f normal;
+        int material_id;
+        bool is_intersected;
     };
 } // namespace parser
 

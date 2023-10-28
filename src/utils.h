@@ -54,8 +54,7 @@ parser::Vec3f cross_product(X &v1, Y &v2)
     return result;
 }
 
-template <typename X, typename Y>
-float dot_product(X &v1, Y &v2)
+float dot_product(parser::Vec3f &v1, parser::Vec3f &v2)
 {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }

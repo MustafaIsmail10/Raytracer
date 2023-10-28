@@ -40,18 +40,20 @@ This function computes the ray for a given pixel in the image. The ray is comput
 r(t) = e + (s - e)d
 where e is the camera position, s is the point on the near plane corresponding to the pixel
 */
-parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u , parser::Vec3f v , parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
+parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u, parser::Vec3f v, parser::Vec3f q, int row, int col, float pixel_width, float pixel_height)
 {
     // Compute s
     float su = (col + 0.5) * pixel_width;
     float sv = (row + 0.5) * pixel_height;
-    parser::Vec3f su_u =  multiply_scalar_with_vector(su, u);
+    parser::Vec3f su_u = multiply_scalar_with_vector(su, u);
     parser::Vec3f sv_v = multiply_scalar_with_vector(sv, v);
     parser::Vec3f s = subtract_vectors(su_u, sv_v);
     s = add_vectors(s, q);
     parser::Vec3f ray_direction = compute_unit_vector(subtract_vectors(s, e));
     return ray_direction;
 }
+
+/* ============================= Computing Normals ============================= */
 
 parser::Vec3f compute_triangle_normal(parser::Scene &scene, parser::Triangle &triangle)
 {
@@ -70,7 +72,79 @@ void compute_all_triangle_normals(parser::Scene &scene)
     for (int i = 0; i < scene.triangles.size(); i++)
     {
         parser::Triangle triangle = scene.triangles[i];
-        parser::Vec3f normal = compute_triangle_normal(scene, triangle);
+        triangle.normal = compute_triangle_normal(scene, triangle);
     }
-    // Store the normal in the triangle
+}
+
+/*  */
+parser::Vec3f compute_sphere_normal(parser::Scene &scene, parser::Sphere &sphere, parser::Vec3f intersection_point)
+{
+    // Vertext ID of the first VertexData is 1
+    parser::Vec3f center = scene.vertex_data[sphere.center_vertex_id - 1];
+    parser::Vec3f normal = subtract_vectors(intersection_point, center);
+    normal = divide_vector_by_scalar(sphere.radius, normal);
+
+    return compute_unit_vector(normal);
+}
+
+/* ============================= Computing Intersections ============================= */
+
+parser::HitRecords intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, parser::Scene &scene)
+{
+    parser::HitRecords hit_record;
+    // Get the center of the sphere
+    parser::Vec3f center = scene.vertex_data[sphere.center_vertex_id - 1];
+    // 1. Compute the discriminant (sqrt part)
+    // p1 = (d . (e - c)) ^ 2
+    parser::Vec3f e_minuc_c = subtract_vectors(ray.e, center);
+    float p1 = pow(dot_product(ray.d, e_minuc_c), 2);
+    // p2 = (d .d) ((e - c).(e - c) - R^2)
+    float p2 = dot_product(ray.d, ray.d) * (dot_product(e_minuc_c, e_minuc_c) - pow(sphere.radius, 2));
+    float discriminant = p1 - p2;
+
+    // 2. If discriminant is negative, no intersection
+    if (discriminant < 0)
+    {
+        hit_record.is_intersected = false;
+        return hit_record;
+    }
+
+    // 3. Find the two roots (Can do some optimization here?)
+    float t1 = (-1 * dot_product(ray.d, e_minuc_c) + sqrt(discriminant)) / dot_product(ray.d, ray.d);
+    float t2 = (-1 * dot_product(ray.d, e_minuc_c) - sqrt(discriminant)) / dot_product(ray.d, ray.d);
+
+    // 4. Find the nearest intersection
+    float t = std::min(t1, t2);
+
+    // 5. Compute the intersection point
+
+    hit_record.intersection_point = ray.getPointFromTime(t);
+    hit_record.normal = compute_sphere_normal(scene, sphere, hit_record.intersection_point);
+    hit_record.material_id = sphere.material_id;
+    hit_record.is_intersected = true;
+
+    return hit_record;
+}
+
+parser::HitRecords intersect_triangle()
+{
+}
+
+void find_nearest_intersection(parser::Scene &scene, parser::Ray &ray)
+{
+    // Loop through all meshes and spheres
+    for (auto mesh : scene.meshes)
+    {
+        // For each mesh, loop through all faces
+        for (auto face : mesh.faces)
+        {
+            // For each face, loop through all triangles
+        }
+    }
+    for (parser::Sphere sphere : scene.spheres)
+    {
+        // For each sphere, find the intersection
+    }
+    // Find intersection for each of them
+    // Find the nearest intersection
 }

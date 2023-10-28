@@ -220,3 +220,8 @@ void parser::Scene::loadFromXml(const std::string &filepath)
 		element = element->NextSiblingElement("Sphere");
 	}
 }
+
+parser::Vec3f parser::Ray::getPointFromTime(float t)
+{
+	return parser::Vec3f{e.x + t * d.x, e.y + t * d.y, e.z + t * d.z};
+}
