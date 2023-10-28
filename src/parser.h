@@ -55,6 +55,7 @@ namespace parser
         int v0_id;
         int v1_id;
         int v2_id;
+        Vec3f normal;
     };
 
     struct Mesh
@@ -66,8 +67,7 @@ namespace parser
     struct Triangle
     {
         int material_id;
-        Vec3f normal;
-        Face indices;
+        Face face;
     };
 
     struct Sphere
@@ -99,6 +99,7 @@ namespace parser
 
     struct Ray
     {
+        unsigned int depth;
         Vec3f e;
         Vec3f d;
         Vec3f getPointFromTime(float t);
@@ -108,6 +109,7 @@ namespace parser
     {
         Vec3f intersection_point;
         Vec3f normal;
+        float distance;
         int material_id;
         bool is_intersected;
     };

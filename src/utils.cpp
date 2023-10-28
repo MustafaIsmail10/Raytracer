@@ -4,14 +4,24 @@
 
 int add(int x, int y) { return x + y; }
 
-// void process_image(parser::Camera *camera, unsigned char *image)
-// {
-//     // For each image row
-//     // For each image col
-//     // Get the ray
-//     parser::Ray ray = compute_pixel_ray_direction(camera, 0, 1);
-//     // REST OF ALGO
-// }
+parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
+{
+    parser::Vec3f result{0, 0, 0};
+    if (camera_ray.depth > scene.max_recursion_depth)
+    {
+        return result;
+    }
+
+    // if (closet_hit(camera_ray, scene))
+    // {
+    //     parser::Vec3f intersection_point = camera_ray.getPointFromTime(camera_ray.t);
+    //     parser::Vec3f normal = compute_normal(camera_ray, scene);
+    //     parser::Material material = scene.materials[camera_ray.material_id];
+    //     result = compute_diffuse_shading(material, normal, intersection_point, scene.point_lights);
+    // }
+
+    return result;
+}
 
 /*
 This function computes the image corner for a given camera. The image corner is computed as follows:
@@ -55,12 +65,12 @@ parser::Vec3f compute_pixel_ray_direction(parser::Vec3f e, parser::Vec3f u, pars
 
 /* ============================= Computing Normals ============================= */
 
-parser::Vec3f compute_triangle_normal(parser::Scene &scene, parser::Triangle &triangle)
+parser::Vec3f compute_triangle_normal(parser::Scene &scene, parser::Face &face)
 {
     // Vertext ID of the first VertexData is 1
-    parser::Vec3f v0 = scene.vertex_data[triangle.indices.v0_id - 1];
-    parser::Vec3f v1 = scene.vertex_data[triangle.indices.v1_id - 1];
-    parser::Vec3f v2 = scene.vertex_data[triangle.indices.v2_id - 1];
+    parser::Vec3f v0 = scene.vertex_data[face.v0_id - 1];
+    parser::Vec3f v1 = scene.vertex_data[face.v1_id - 1];
+    parser::Vec3f v2 = scene.vertex_data[face.v2_id - 1];
     parser::Vec3f v0v1 = subtract_vectors(v1, v0);
     parser::Vec3f v0v2 = subtract_vectors(v2, v0);
     return compute_unit_vector(cross_product(v0v1, v0v2));
@@ -69,14 +79,22 @@ parser::Vec3f compute_triangle_normal(parser::Scene &scene, parser::Triangle &tr
 void compute_all_triangle_normals(parser::Scene &scene)
 {
     // For each triangle
-    for (int i = 0; i < scene.triangles.size(); i++)
+    for (parser::Triangle triangle : scene.triangles)
     {
-        parser::Triangle triangle = scene.triangles[i];
-        triangle.normal = compute_triangle_normal(scene, triangle);
+        triangle.face.normal = compute_triangle_normal(scene, triangle.face);
+    }
+
+    // For each mesh
+    for (parser::Mesh mesh : scene.meshes)
+    {
+        for (auto face : mesh.faces)
+        {
+            face.normal = compute_triangle_normal(scene, face);
+        }
     }
 }
 
-/*  */
+/* We can't precompute sphere normals because we need intersection point */
 parser::Vec3f compute_sphere_normal(parser::Scene &scene, parser::Sphere &sphere, parser::Vec3f intersection_point)
 {
     // Vertext ID of the first VertexData is 1
@@ -89,6 +107,7 @@ parser::Vec3f compute_sphere_normal(parser::Scene &scene, parser::Sphere &sphere
 
 /* ============================= Computing Intersections ============================= */
 
+/* Find point of intersection (or no intersection) for a sphere */
 parser::HitRecords intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, parser::Scene &scene)
 {
     parser::HitRecords hit_record;
@@ -113,38 +132,134 @@ parser::HitRecords intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, pa
     float t1 = (-1 * dot_product(ray.d, e_minuc_c) + sqrt(discriminant)) / dot_product(ray.d, ray.d);
     float t2 = (-1 * dot_product(ray.d, e_minuc_c) - sqrt(discriminant)) / dot_product(ray.d, ray.d);
 
+    // If both t1 and t2 are 0, then no intersection.
+    if (t1 < EPSILON && t2 < EPSILON)
+    {
+        hit_record.is_intersected = false;
+        return hit_record;
+    }
+
     // 4. Find the nearest intersection
     float t = std::min(t1, t2);
 
     // 5. Compute the intersection point
-
     hit_record.intersection_point = ray.getPointFromTime(t);
     hit_record.normal = compute_sphere_normal(scene, sphere, hit_record.intersection_point);
     hit_record.material_id = sphere.material_id;
     hit_record.is_intersected = true;
+    // We can use "t" as a replacement for distance perhaps?
+    // hit_record.distance = magnitude(subtract_vectors(e, hit_record.intersection_point));
+    hit_record.distance = t;
 
     return hit_record;
 }
 
-parser::HitRecords intersect_triangle()
+/* Find point of intersection (or no intersection) for a triangle(face). Uses Barycentric coordinates */
+parser::HitRecords intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id)
 {
+    parser::HitRecords hit_record;
+    parser::Vec3f a = scene.vertex_data[face.v0_id - 1];
+    parser::Vec3f b = scene.vertex_data[face.v1_id - 1];
+    parser::Vec3f c = scene.vertex_data[face.v2_id - 1];
+    parser::Vec3f e = ray.e;
+    parser::Vec3f d = ray.d;
+
+    // We have Ax = B where x = (beta, gamma, t)
+    // A = [v1 - v2, v1 - v3, d]
+    // B = [v1 - e]
+    // 1. Compute the determinant
+    float a_determinant = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, c), d);
+    // 2. If determinant is 0, no intersection
+    if (a_determinant < EPSILON)
+    {
+        hit_record.is_intersected = false;
+        return hit_record;
+    }
+
+    // Using cramers rule
+    float beta = compute_determinant(subtract_vectors(a, e), subtract_vectors(a, c), d) / a_determinant;
+    float gamma = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, e), d) / a_determinant;
+    float t = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, c), subtract_vectors(a, e)) / a_determinant;
+
+    // 3. If all conditions are met, then there is an intersection
+    // 0 <= beta, 0 <= gamma, 0 <= beta + gamma <= 1, t > 0
+    if ((0 <= beta + gamma) && (beta + gamma <= 1) && beta >= 0 && gamma >= 0 && t > 0)
+    {
+        hit_record.is_intersected = true;
+        hit_record.intersection_point = ray.getPointFromTime(t);
+        hit_record.normal = compute_triangle_normal(scene, face);
+        hit_record.material_id = material_id;
+        hit_record.distance = t;
+        return hit_record;
+    }
+
+    hit_record.is_intersected = false;
+    return hit_record;
 }
 
-void find_nearest_intersection(parser::Scene &scene, parser::Ray &ray)
+/* Find the closest point of intersection of ray with a mesh, triangle or sphere */
+parser::HitRecords find_nearest_intersection(parser::Scene &scene, parser::Ray &ray)
 {
-    // Loop through all meshes and spheres
-    for (auto mesh : scene.meshes)
+    float min_distance = std::numeric_limits<float>::max();
+    parser::HitRecords min_hit_record = parser::HitRecords{.distance = min_distance, .is_intersected = false};
+    // Loop through all meshes, triangles and spheres
+    for (parser::Mesh mesh : scene.meshes)
     {
-        // For each mesh, loop through all faces
-        for (auto face : mesh.faces)
+        for (parser::Face face : mesh.faces)
         {
-            // For each face, loop through all triangles
+            parser::HitRecords current_hit_record = intersect_triangle(face, ray, scene, mesh.material_id);
+            if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+            {
+                min_hit_record = current_hit_record;
+            }
         }
     }
+
+    for (parser::Triangle triangle : scene.triangles)
+    {
+        // For each triangle, find the intersection
+        parser::HitRecords current_hit_record = intersect_triangle(triangle.face, ray, scene, triangle.material_id);
+        if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+        {
+            min_hit_record = current_hit_record;
+        }
+    }
+
     for (parser::Sphere sphere : scene.spheres)
     {
         // For each sphere, find the intersection
+        parser::HitRecords current_hit_record = intersect_sphere(sphere, ray, scene);
+        if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+        {
+            min_hit_record = current_hit_record;
+        }
     }
-    // Find intersection for each of them
-    // Find the nearest intersection
+
+    return min_hit_record;
+}
+
+/* ============================= Computing Shadings ============================= */
+
+/*
+This function computer the diffuse shading a point given the material, normal, point lights.
+*/
+parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, std::vector<parser::PointLight> point_lights)
+{
+    parser::Vec3f result{0, 0, 0};
+    for (int i = 0; i < point_lights.size(); i++)
+    {
+        parser::PointLight current_light = point_lights[i];
+        parser::Vec3f light_vector = subtract_vectors(current_light.position, intersection_point);
+        parser::Vec3f light_direction = compute_unit_vector(light_vector);
+        float cos_angle = dot_product(light_direction, normal);
+        if (cos_angle > 0)
+        {
+            float light_distance_square = dot_product(light_vector, light_vector);
+            parser::Vec3f light_indensity = divide_vector_by_scalar(light_distance_square, current_light.intensity);
+            parser::Vec3f diffuse = multiply_scalar_with_vector(cos_angle, material.diffuse);
+            diffuse = multiply_vector_with_vector(diffuse, light_indensity);
+            result = add_vectors(result, diffuse);
+        }
+    }
+    return result;
 }
