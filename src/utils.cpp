@@ -4,6 +4,26 @@
 
 int add(int x, int y) { return x + y; }
 
+/* ============================= Vector Operations ============================= */
+
+float dot_product(parser::Vec3f &v1, parser::Vec3f &v2)
+{
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+float compute_magnitude(parser::Vec3f v)
+{
+    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+float compute_determinant(parser::Vec3f v1, parser::Vec3f v2, parser::Vec3f v3)
+{
+    return v1.x * (v2.y * v3.z - v2.z * v3.y) -
+           v1.y * (v2.x * v3.z - v2.z * v3.x) +
+           v1.z * (v2.x * v3.y - v2.y * v3.x);
+}
+
+
 parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
 {
     parser::Vec3f result{0, 0, 0};

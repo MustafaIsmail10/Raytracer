@@ -7,6 +7,7 @@
 
 const double EPSILON = 1e-6;
 
+/* ============================= Vector Operations ============================= */
 template <typename X, typename Y>
 parser::Vec3f add_vectors(X &v1, Y &v2)
 {
@@ -67,10 +68,7 @@ parser::Vec3f cross_product(X &v1, Y &v2)
     return result;
 }
 
-float dot_product(parser::Vec3f &v1, parser::Vec3f &v2)
-{
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-}
+float dot_product(parser::Vec3f &v1, parser::Vec3f &v2);
 
 template <typename X>
 parser::Vec3f compute_unit_vector(X v)
@@ -79,17 +77,9 @@ parser::Vec3f compute_unit_vector(X v)
     return divide_vector_by_scalar(magnitude, v);
 }
 
-float compute_magnitude(parser::Vec3f v)
-{
-    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
+float compute_magnitude(parser::Vec3f v);
 
-float compute_determinant(parser::Vec3f v1, parser::Vec3f v2, parser::Vec3f v3)
-{
-    return v1.x * (v2.y * v3.z - v2.z * v3.y) -
-           v1.y * (v2.x * v3.z - v2.z * v3.x) +
-           v1.z * (v2.x * v3.y - v2.y * v3.x);
-}
+float compute_determinant(parser::Vec3f v1, parser::Vec3f v2, parser::Vec3f v3);
 
 parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene);
 parser::Vec3f compute_image_corner(const parser::Camera &camera, parser::Vec3f u, parser::Vec3f v, parser::Vec3f w);
