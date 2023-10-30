@@ -285,10 +285,10 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         parser::PointLight point_light = scene.point_lights[point_light_num];
 
         // Check if the object is in shadow or not
-        // if (is_in_shadow(scene, hit_record, point_light))
-        // {
-        //     continue;
-        // }
+        if (is_in_shadow(scene, hit_record, point_light))
+        {
+            continue;
+        }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
         
@@ -307,11 +307,13 @@ bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::P
     new_intersction_point = add_vectors(hit_record.intersection_point, new_intersction_point);
     parser::Vec3f light_vector = subtract_vectors(point_light.position, new_intersction_point);
     float min_distance = compute_magnitude(light_vector);
+    
     parser::Ray shadow_ray;
     shadow_ray.e = new_intersction_point;
     shadow_ray.d = compute_unit_vector(light_vector);
+    shadow_ray.depth = 0;
     parser::HitRecord shadow_hit_record = find_nearest_intersection(scene, shadow_ray);
-    if (shadow_hit_record.is_intersected && shadow_hit_record.distance < min_distance)
+    if (shadow_hit_record.is_intersected && shadow_hit_record.distance > 0 && shadow_hit_record.distance - min_distance < EPSILON)
     {
         return true;
     }
