@@ -109,7 +109,7 @@ namespace parser
     {
         Vec3f intersection_point;
         Vec3f normal;
-        float distance;
+        float t;
         int material_id;
         bool is_intersected;
     };

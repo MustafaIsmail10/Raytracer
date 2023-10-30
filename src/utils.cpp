@@ -164,7 +164,7 @@ parser::HitRecord intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, par
     hit_record.is_intersected = true;
     // We can use "t" as a replacement for distance perhaps?
     // hit_record.distance = magnitude(subtract_vectors(e, hit_record.intersection_point));
-    hit_record.distance = t;
+    hit_record.t = t;
 
     return hit_record;
 }
@@ -212,7 +212,7 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
         hit_record.intersection_point = ray.getPointFromTime(t);
         hit_record.normal = face.normal;
         hit_record.material_id = material_id;
-        hit_record.distance = t;
+        hit_record.t = t;
         return hit_record;
     }
 
@@ -224,14 +224,14 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
 parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &ray)
 {
     float min_distance = std::numeric_limits<float>::max();
-    parser::HitRecord min_hit_record = parser::HitRecord{.distance = min_distance, .is_intersected = false};
+    parser::HitRecord min_hit_record = parser::HitRecord{.t = min_distance, .is_intersected = false};
     // Loop through all meshes, triangles and spheres
     for (parser::Mesh mesh : scene.meshes)
     {
         for (parser::Face face : mesh.faces)
         {
             parser::HitRecord current_hit_record = intersect_triangle(face, ray, scene, mesh.material_id);
-            if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+            if (current_hit_record.is_intersected && current_hit_record.t > 0 && current_hit_record.t < min_hit_record.t)
             {
                 min_hit_record = current_hit_record;
             }
@@ -242,7 +242,7 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
     {
         // For each triangle, find the intersection
         parser::HitRecord current_hit_record = intersect_triangle(triangle.face, ray, scene, triangle.material_id);
-        if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+        if (current_hit_record.is_intersected && current_hit_record.t > 0 && current_hit_record.t < min_hit_record.t)
         {
             min_hit_record = current_hit_record;
         }
@@ -252,7 +252,7 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
     {
         // For each sphere, find the intersection
         parser::HitRecord current_hit_record = intersect_sphere(sphere, ray, scene);
-        if (current_hit_record.is_intersected && current_hit_record.distance < min_hit_record.distance)
+        if (current_hit_record.is_intersected && current_hit_record.t > 0 && current_hit_record.t < min_hit_record.t)
         {
             min_hit_record = current_hit_record;
         }
@@ -291,7 +291,7 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
-        
+
         // std::cout << "diffuse_color: " << diffuse_color.x << " " << diffuse_color.y << " " << diffuse_color.z << std::endl;
         // std::cout << "specular_color: " << specular_color.x << " " << specular_color.y << " " << specular_color.z << std::endl;
         final_color = add_vectors(final_color, diffuse_color);
@@ -307,13 +307,13 @@ bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::P
     new_intersction_point = add_vectors(hit_record.intersection_point, new_intersction_point);
     parser::Vec3f light_vector = subtract_vectors(point_light.position, new_intersction_point);
     float min_distance = compute_magnitude(light_vector);
-    
+
     parser::Ray shadow_ray;
     shadow_ray.e = new_intersction_point;
     shadow_ray.d = compute_unit_vector(light_vector);
     shadow_ray.depth = 0;
     parser::HitRecord shadow_hit_record = find_nearest_intersection(scene, shadow_ray);
-    if (shadow_hit_record.is_intersected && shadow_hit_record.distance > 0 && shadow_hit_record.distance - min_distance < EPSILON)
+    if (shadow_hit_record.is_intersected && shadow_hit_record.t > 0 && shadow_hit_record.t - min_distance < EPSILON)
     {
         return true;
     }
