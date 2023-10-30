@@ -193,7 +193,9 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
     // A = [v1 - v2, v1 - v3, d]
     // B = [v1 - e]
     // 1. Compute the determinant
-    float a_determinant = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, c), d);
+    parser::Vec3f a_minus_b = subtract_vectors(a, b);
+    parser::Vec3f a_minus_c = subtract_vectors(a, c);
+    float a_determinant = compute_determinant(a_minus_b, a_minus_c, d);
 
     // 2. If determinant is 0, no intersection
     if (std::fabs(a_determinant) < EPSILON)
@@ -203,9 +205,11 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
     }
 
     // Using cramers rule
-    float beta = compute_determinant(subtract_vectors(a, e), subtract_vectors(a, c), d) / a_determinant;
-    float gamma = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, e), d) / a_determinant;
-    float t = compute_determinant(subtract_vectors(a, b), subtract_vectors(a, c), subtract_vectors(a, e)) / a_determinant;
+    parser::Vec3f a_minus_e = subtract_vectors(a, e);
+
+    float beta = compute_determinant(a_minus_e, a_minus_c, d) / a_determinant;
+    float gamma = compute_determinant(a_minus_b, a_minus_e, d) / a_determinant;
+    float t = compute_determinant(a_minus_b, a_minus_c, a_minus_e) / a_determinant;
 
     // 3. If all conditions are met, then there is an intersection
     // 0 <= beta, 0 <= gamma, 0 <= beta + gamma <= 1, t > 0
