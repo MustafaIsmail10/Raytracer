@@ -10,7 +10,7 @@ parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
         return result;
     }
 
-    parser::HitRecord hit_record = find_nearest_intersection(scene, camera_ray);
+    parser::HitRecord hit_record = find_nearest_intersection(scene, camera_ray, false);
 
     if (hit_record.is_intersected)
     {
@@ -170,15 +170,18 @@ parser::HitRecord intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, par
 }
 
 /* Find point of intersection (or no intersection) for a triangle(face). Uses Barycentric coordinates */
-parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id)
+parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id, bool is_shadow_ray)
 {
     parser::HitRecord hit_record;
-    // float angle_between_normal_and_ray = dot_product(face.normal, ray.d);
-    // if (angle_between_normal_and_ray >= 0)
-    // {
-    //     hit_record.is_intersected = false;
-    //     return hit_record;
-    // }
+    if (!is_shadow_ray)
+    {
+        float angle_between_normal_and_ray = dot_product(face.normal, ray.d);
+        if (angle_between_normal_and_ray >= 0)
+        {
+            hit_record.is_intersected = false;
+            return hit_record;
+        }
+    }
 
     parser::Vec3f a = scene.vertex_data[face.v0_id - 1];
     parser::Vec3f b = scene.vertex_data[face.v1_id - 1];
@@ -221,17 +224,17 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
 }
 
 /* Find the closest point of intersection of ray with a mesh, triangle or sphere */
-parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &ray)
+parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &ray, bool is_shadow_ray)
 {
     float min_distance = std::numeric_limits<float>::max();
     parser::HitRecord min_hit_record = parser::HitRecord{.t = min_distance, .is_intersected = false};
-    
+
     // Loop through all meshes, triangles and spheres
     for (parser::Mesh mesh : scene.meshes)
     {
         for (parser::Face face : mesh.faces)
         {
-            parser::HitRecord current_hit_record = intersect_triangle(face, ray, scene, mesh.material_id);
+            parser::HitRecord current_hit_record = intersect_triangle(face, ray, scene, mesh.material_id, is_shadow_ray);
             if (current_hit_record.is_intersected && current_hit_record.t > 0 && current_hit_record.t < min_hit_record.t)
             {
                 min_hit_record = current_hit_record;
@@ -242,7 +245,7 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
     for (parser::Triangle triangle : scene.triangles)
     {
         // For each triangle, find the intersection
-        parser::HitRecord current_hit_record = intersect_triangle(triangle.face, ray, scene, triangle.material_id);
+        parser::HitRecord current_hit_record = intersect_triangle(triangle.face, ray, scene, triangle.material_id, is_shadow_ray);
         if (current_hit_record.is_intersected && current_hit_record.t > 0 && current_hit_record.t < min_hit_record.t)
         {
             min_hit_record = current_hit_record;
@@ -268,30 +271,30 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
 {
     parser::Material material = scene.materials[hit_record.material_id - 1];
     parser::Vec3f final_color = multiply_vector_with_vector(scene.ambient_light, material.ambient);
-    // if (material.is_mirror)
-    // {
-    //     parser::Ray mirror_ray;
-    //     parser::Vec3f w_o = multiply_scalar_with_vector(-1, ray.d);
-    //     parser::Vec3f n2_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, w_o) * 2, hit_record.normal);
-    //     mirror_ray.d = add_vectors(ray.d, n2_cos_theta);
-    //     mirror_ray.e = multiply_scalar_with_vector(scene.shadow_ray_epsilon, hit_record.normal);
-    //     mirror_ray.e = add_vectors(hit_record.intersection_point, mirror_ray.e);
-    //     mirror_ray.depth += 1;
+    if (material.is_mirror)
+    {
+        parser::Ray mirror_ray;
+        parser::Vec3f w_o = multiply_scalar_with_vector(-1, ray.d);
+        parser::Vec3f n2_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, w_o) * 2, hit_record.normal);
+        mirror_ray.d = add_vectors(ray.d, n2_cos_theta);
+        mirror_ray.e = multiply_scalar_with_vector(scene.shadow_ray_epsilon, hit_record.normal);
+        mirror_ray.e = add_vectors(hit_record.intersection_point, mirror_ray.e);
+        mirror_ray.depth += 1;
 
-    //     parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
-    //     mirror_color = multiply_vector_with_vector(material.mirror, mirror_color);
-    //     final_color = add_vectors(final_color, mirror_color);
-    // }
+        parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
+        mirror_color = multiply_vector_with_vector(material.mirror, mirror_color);
+        final_color = add_vectors(final_color, mirror_color);
+    }
 
     for (int point_light_num = 0; point_light_num < scene.point_lights.size(); point_light_num++)
     {
         parser::PointLight point_light = scene.point_lights[point_light_num];
 
         // Check if the object is in shadow or not
-        // if (is_in_shadow(scene, hit_record, point_light))
-        // {
-        //     continue;
-        // }
+        if (is_in_shadow(scene, hit_record, point_light))
+        {
+            continue;
+        }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
         final_color = add_vectors(final_color, diffuse_color);

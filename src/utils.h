@@ -5,7 +5,7 @@
 #include <cmath>
 #include <limits>
 
-const double EPSILON = 1e-4;
+const double EPSILON = 1e-12;
 
 /* ============================= Vector Operations ============================= */
 template <typename X, typename Y>
@@ -119,8 +119,8 @@ parser::Vec3f compute_sphere_normal(parser::Scene &scene, parser::Sphere &sphere
 
 /* ============================= Computing Intersections ============================= */
 parser::HitRecord intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, parser::Scene &scene);
-parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id);
-parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &ray);
+parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id, bool is_shadow_ray);
+parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &ray, bool is_shadow_ray);
 
 /* ============================= Computing Shadings ============================= */
 parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitRecord &hit_record);
