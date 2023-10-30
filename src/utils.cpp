@@ -315,7 +315,7 @@ bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::P
     shadow_ray.e = new_intersction_point;
     shadow_ray.d = compute_unit_vector(light_vector);
     shadow_ray.depth = 0;
-    parser::HitRecord shadow_hit_record = find_nearest_intersection(scene, shadow_ray);
+    parser::HitRecord shadow_hit_record = find_nearest_intersection(scene, shadow_ray, true);
     if (shadow_hit_record.is_intersected && shadow_hit_record.t > 0 && shadow_hit_record.t - min_distance < EPSILON)
     {
         return true;
