@@ -14,11 +14,6 @@ parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene)
 
     if (hit_record.is_intersected)
     {
-        std::cout << hit_record.is_intersected << std::endl;
-        std::cout << hit_record.distance << std::endl;
-        std::cout << hit_record.intersection_point.x << " " << hit_record.intersection_point.y << " " << hit_record.intersection_point.z << std::endl;
-        std::cout << hit_record.normal.x << " " << hit_record.normal.y << " " << hit_record.normal.z << std::endl;
-        std::cout << hit_record.material_id << std::endl;
         result = apply_shading(scene, camera_ray, hit_record);
         return result;
     }
@@ -274,16 +269,51 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
     parser::Vec3f final_color = multiply_vector_with_vector(scene.ambient_light, material.ambient);
     if (material.is_mirror)
     {
+        parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
+        parser::Vec3f n_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, out_going_ray) * 2, hit_record.normal);
+        parser::Vec3f mirror_ray_direction = add_vectors(ray.d, n_cos_theta);
+        // parser::Ray mirror_ray;
+        // mirror_ray.e = hit_record.intersection_point;
+        // mirror_ray.d = mirror_ray_direction;
+        // mirror_ray.depth = ray.depth + 1;
+        // parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
+        // final_color = add_vectors(final_color, multiply_vector_with_vector(material.mirror, mirror_color));
     }
 
     for (int point_light_num = 0; point_light_num < scene.point_lights.size(); point_light_num++)
     {
         parser::PointLight point_light = scene.point_lights[point_light_num];
+
+        // Check if the object is in shadow or not
+        if (is_in_shadow(scene, hit_record, point_light))
+        {
+            continue;
+        }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         final_color = add_vectors(final_color, diffuse_color);
     }
 
     return final_color;
+}
+
+bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::PointLight &point_light)
+{
+    parser::Vec3f new_intersction_point = multiply_scalar_with_vector(scene.shadow_ray_epsilon, hit_record.normal);
+    new_intersction_point = add_vectors(hit_record.intersection_point, new_intersction_point);
+    parser::Vec3f light_vector = subtract_vectors(point_light.position, new_intersction_point);
+    float min_distance = compute_magnitude(light_vector);
+    parser::Ray shadow_ray;
+    shadow_ray.e = new_intersction_point;
+    shadow_ray.d = compute_unit_vector(light_vector);
+    parser::HitRecord shadow_hit_record = find_nearest_intersection(scene, shadow_ray);
+    if (shadow_hit_record.is_intersected && shadow_hit_record.distance < min_distance)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 /*
