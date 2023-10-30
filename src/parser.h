@@ -105,7 +105,7 @@ namespace parser
         Vec3f getPointFromTime(float t);
     };
 
-    struct HitRecords
+    struct HitRecord
     {
         Vec3f intersection_point;
         Vec3f normal;
