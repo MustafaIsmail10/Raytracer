@@ -267,18 +267,18 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
 {
     parser::Material material = scene.materials[hit_record.material_id - 1];
     parser::Vec3f final_color = multiply_vector_with_vector(scene.ambient_light, material.ambient);
-    if (material.is_mirror)
-    {
-        parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
-        parser::Vec3f n_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, out_going_ray) * 2, hit_record.normal);
-        parser::Vec3f mirror_ray_direction = add_vectors(ray.d, n_cos_theta);
-        // parser::Ray mirror_ray;
-        // mirror_ray.e = hit_record.intersection_point;
-        // mirror_ray.d = mirror_ray_direction;
-        // mirror_ray.depth = ray.depth + 1;
-        // parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
-        // final_color = add_vectors(final_color, multiply_vector_with_vector(material.mirror, mirror_color));
-    }
+    // if (material.is_mirror)
+    // {
+    //     parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
+    //     parser::Vec3f n_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, out_going_ray) * 2, hit_record.normal);
+    //     parser::Vec3f mirror_ray_direction = add_vectors(ray.d, n_cos_theta);
+    //     // parser::Ray mirror_ray;
+    //     // mirror_ray.e = hit_record.intersection_point;
+    //     // mirror_ray.d = mirror_ray_direction;
+    //     // mirror_ray.depth = ray.depth + 1;
+    //     // parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
+    //     // final_color = add_vectors(final_color, multiply_vector_with_vector(material.mirror, mirror_color));
+    // }
 
     for (int point_light_num = 0; point_light_num < scene.point_lights.size(); point_light_num++)
     {
@@ -290,7 +290,12 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
             continue;
         }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
+        parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
+        
+        std::cout << "diffuse_color: " << diffuse_color.x << " " << diffuse_color.y << " " << diffuse_color.z << std::endl;
+        std::cout << "specular_color: " << specular_color.x << " " << specular_color.y << " " << specular_color.z << std::endl;
         final_color = add_vectors(final_color, diffuse_color);
+        final_color = add_vectors(final_color, specular_color);
     }
 
     return final_color;
@@ -337,18 +342,21 @@ parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f n
     return result;
 }
 
-parser::Vec3f compute_specular_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light)
+parser::Vec3f compute_specular_shading(parser::Material material, parser::Ray &ray, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light)
 {
     // w_i -> light_direction
     // intersection_point -> w_0
     parser::Vec3f result{0, 0, 0};
     parser::Vec3f light_vector = subtract_vectors(point_light.position, intersection_point);
     parser::Vec3f light_direction = compute_unit_vector(light_vector);
-    parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, intersection_point));
-    float cos_angle = dot_product(half_vector, normal);
-    cos_angle = pow(cos_angle, material.phong_exponent);
+    parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
+    parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, out_going_ray));
+
+    float cos_angle = std::fmax(dot_product(half_vector, normal), 0);
+
     if (cos_angle > 0)
     {
+        cos_angle = pow(cos_angle, material.phong_exponent);
         float light_distance_square = dot_product(light_vector, light_vector);
         parser::Vec3f intensity = divide_vector_by_scalar(light_distance_square, point_light.intensity);
         parser::Vec3f specular = multiply_scalar_with_vector(cos_angle, material.specular);

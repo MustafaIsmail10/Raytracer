@@ -86,7 +86,7 @@ parser::Vec3f cross_product(X &v1, Y &v2)
 {
     parser::Vec3f result;
     result.x = v1.y * v2.z - v1.z * v2.y;
-    result.y =  v1.z * v2.x - v1.x * v2.z;
+    result.y = v1.z * v2.x - v1.x * v2.z;
     result.z = v1.x * v2.y - v1.y * v2.x;
     return result;
 }
@@ -98,7 +98,6 @@ parser::Vec3f compute_unit_vector(X v)
     return divide_vector_by_scalar(magnitude, v);
 }
 
-
 template <typename X, typename Y>
 void assing_vector_to_vector(X &v1, const Y &v2)
 {
@@ -106,7 +105,6 @@ void assing_vector_to_vector(X &v1, const Y &v2)
     v1.y = v2.y;
     v1.z = v2.z;
 }
-
 
 /* ============================= Pixel Processing Functions ============================= */
 parser::Vec3f compute_color(parser::Ray camera_ray, parser::Scene &scene);
@@ -127,6 +125,6 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
 /* ============================= Computing Shadings ============================= */
 parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitRecord &hit_record);
 parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light);
-parser::Vec3f compute_specular_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::Vec3f ray_direction, std::vector<parser::PointLight> point_lights);
+parser::Vec3f compute_specular_shading(parser::Material material, parser::Ray &ray, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light);
 bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::PointLight &point_light);
 #endif
