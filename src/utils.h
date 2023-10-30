@@ -128,5 +128,5 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
 parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitRecord &hit_record);
 parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light);
 parser::Vec3f compute_specular_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::Vec3f ray_direction, std::vector<parser::PointLight> point_lights);
-
+bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::PointLight &point_light);
 #endif
