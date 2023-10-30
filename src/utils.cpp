@@ -306,3 +306,25 @@ parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f n
 
     return result;
 }
+
+parser::Vec3f compute_specular_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light)
+{
+    // w_i -> light_direction
+    // intersection_point -> w_0
+    parser::Vec3f result{0, 0, 0};
+    parser::Vec3f light_vector = subtract_vectors(point_light.position, intersection_point);
+    parser::Vec3f light_direction = compute_unit_vector(light_vector);
+    parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, intersection_point));
+    float cos_angle = dot_product(half_vector, normal);
+    cos_angle = pow(cos_angle, material.phong_exponent);
+    if (cos_angle > 0)
+    {
+        float light_distance_square = dot_product(light_vector, light_vector);
+        parser::Vec3f intensity = divide_vector_by_scalar(light_distance_square, point_light.intensity);
+        parser::Vec3f specular = multiply_scalar_with_vector(cos_angle, material.specular);
+        specular = multiply_vector_with_vector(specular, intensity);
+        result = add_vectors(result, specular);
+    }
+
+    return result;
+}
