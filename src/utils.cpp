@@ -295,8 +295,11 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         {
             continue;
         }
-        parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
-        parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
+
+        parser::Vec3f light_vector = subtract_vectors(point_light.position, hit_record.intersection_point);
+        parser::Vec3f light_direction = compute_unit_vector(light_vector);
+        parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light, light_vector, light_direction);
+        parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light, light_vector, light_direction);
         final_color = add_vectors(final_color, diffuse_color);
         final_color = add_vectors(final_color, specular_color);
     }
@@ -329,11 +332,9 @@ bool is_in_shadow(parser::Scene &scene, parser::HitRecord &hit_record, parser::P
 /*
 This function computer the diffuse shading a point given the material, normal, point lights.
 */
-parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light)
+parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light, parser::Vec3f light_vector, parser::Vec3f light_direction)
 {
     parser::Vec3f result{0, 0, 0};
-    parser::Vec3f light_vector = subtract_vectors(point_light.position, intersection_point);
-    parser::Vec3f light_direction = compute_unit_vector(light_vector);
     float cos_angle = dot_product(light_direction, normal);
     if (cos_angle > 0)
     {
@@ -347,13 +348,11 @@ parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f n
     return result;
 }
 
-parser::Vec3f compute_specular_shading(parser::Material material, parser::Ray &ray, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light)
+parser::Vec3f compute_specular_shading(parser::Material material, parser::Ray &ray, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light, parser::Vec3f light_vector, parser::Vec3f light_direction)
 {
     // w_i -> light_direction
     // intersection_point -> w_0
     parser::Vec3f result{0, 0, 0};
-    parser::Vec3f light_vector = subtract_vectors(point_light.position, intersection_point);
-    parser::Vec3f light_direction = compute_unit_vector(light_vector);
     parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
     parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, out_going_ray));
 
