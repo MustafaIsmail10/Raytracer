@@ -1,1 +1,1 @@
- ../test_scenes/inputs/simple.xml
+ ../test_scenes/inputs/car.xml

@@ -51,34 +51,4 @@ int main(int argc, char *argv[])
         }
         write_ppm(current_camera.image_name.c_str(), image, current_camera.image_width, current_camera.image_height);
     }
-
-    const RGB BAR_COLOR[8] = {
-        {255, 255, 255}, // 100% White
-        {255, 255, 0},   // Yellow
-        {0, 255, 255},   // Cyan
-        {0, 255, 0},     // Green
-        {255, 0, 255},   // Magenta
-        {255, 0, 0},     // Red
-        {0, 0, 255},     // Blue
-        {0, 0, 0},       // Black
-    };
-
-    int width = 1920, height = 1080;
-    int columnWidth = width / 8;
-
-    unsigned char *image = new unsigned char[width * height * 3];
-
-    int i = 0;
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            int colIdx = x / columnWidth;
-            image[i++] = BAR_COLOR[colIdx][0];
-            image[i++] = BAR_COLOR[colIdx][1];
-            image[i++] = BAR_COLOR[colIdx][2];
-        }
-    }
-
-    write_ppm("test.ppm", image, width, height);
 }

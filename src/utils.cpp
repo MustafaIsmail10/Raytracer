@@ -285,15 +285,15 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         parser::PointLight point_light = scene.point_lights[point_light_num];
 
         // Check if the object is in shadow or not
-        if (is_in_shadow(scene, hit_record, point_light))
-        {
-            continue;
-        }
+        // if (is_in_shadow(scene, hit_record, point_light))
+        // {
+        //     continue;
+        // }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
         
-        std::cout << "diffuse_color: " << diffuse_color.x << " " << diffuse_color.y << " " << diffuse_color.z << std::endl;
-        std::cout << "specular_color: " << specular_color.x << " " << specular_color.y << " " << specular_color.z << std::endl;
+        // std::cout << "diffuse_color: " << diffuse_color.x << " " << diffuse_color.y << " " << diffuse_color.z << std::endl;
+        // std::cout << "specular_color: " << specular_color.x << " " << specular_color.y << " " << specular_color.z << std::endl;
         final_color = add_vectors(final_color, diffuse_color);
         final_color = add_vectors(final_color, specular_color);
     }
