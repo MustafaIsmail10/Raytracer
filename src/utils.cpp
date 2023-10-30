@@ -338,39 +338,39 @@ This function computer the diffuse shading a point given the material, normal, p
 */
 parser::Vec3f compute_diffuse_shading(parser::Material material, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light, parser::Vec3f light_vector, parser::Vec3f light_direction)
 {
-    parser::Vec3f result{0, 0, 0};
+    parser::Vec3f diffuse{0, 0, 0};
     float cos_angle = dot_product(light_direction, normal);
     if (cos_angle > 0)
     {
         float light_distance_square = dot_product(light_vector, light_vector);
         parser::Vec3f light_indensity = divide_vector_by_scalar(light_distance_square, point_light.intensity);
-        parser::Vec3f diffuse = multiply_scalar_with_vector(cos_angle, material.diffuse);
+        diffuse = multiply_scalar_with_vector(cos_angle, material.diffuse);
         diffuse = multiply_vector_with_vector(diffuse, light_indensity);
-        result = add_vectors(result, diffuse);
     }
 
-    return result;
+    return diffuse;
 }
 
 parser::Vec3f compute_specular_shading(parser::Material material, parser::Ray &ray, parser::Vec3f normal, parser::Vec3f intersection_point, parser::PointLight point_light, parser::Vec3f light_vector, parser::Vec3f light_direction)
 {
-    // w_i -> light_direction
-    // intersection_point -> w_0
+
     parser::Vec3f result{0, 0, 0};
-    parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
-    parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, out_going_ray));
-
-    float cos_angle = std::fmax(dot_product(half_vector, normal), 0);
-
-    if (cos_angle > 0)
+    float cos_angle_between_normal_and_light = dot_product(light_direction, normal);
+    if (cos_angle_between_normal_and_light > 0)
     {
-        cos_angle = pow(cos_angle, material.phong_exponent);
-        float light_distance_square = dot_product(light_vector, light_vector);
-        parser::Vec3f intensity = divide_vector_by_scalar(light_distance_square, point_light.intensity);
-        parser::Vec3f specular = multiply_scalar_with_vector(cos_angle, material.specular);
-        specular = multiply_vector_with_vector(specular, intensity);
-        result = add_vectors(result, specular);
-    }
 
+        parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
+        parser::Vec3f half_vector = compute_unit_vector(add_vectors(light_direction, out_going_ray));
+        float cos_angle = std::fmax(dot_product(half_vector, normal), 0);
+        if (cos_angle > 0)
+        {
+            cos_angle = pow(cos_angle, material.phong_exponent);
+            float light_distance_square = dot_product(light_vector, light_vector);
+            parser::Vec3f intensity = divide_vector_by_scalar(light_distance_square, point_light.intensity);
+            parser::Vec3f specular = multiply_scalar_with_vector(cos_angle, material.specular);
+            specular = multiply_vector_with_vector(specular, intensity);
+            result = add_vectors(result, specular);
+        }
+    }
     return result;
 }
