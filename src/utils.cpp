@@ -283,7 +283,7 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         mirror_ray.d = add_vectors(ray.d, n2_cos_theta);
         mirror_ray.e = multiply_scalar_with_vector(scene.shadow_ray_epsilon, hit_record.normal);
         mirror_ray.e = add_vectors(hit_record.intersection_point, mirror_ray.e);
-        mirror_ray.depth += 1;
+        mirror_ray.depth = ray.depth + 1;
 
         parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
         mirror_color = multiply_vector_with_vector(material.mirror, mirror_color);
