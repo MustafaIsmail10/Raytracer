@@ -173,12 +173,12 @@ parser::HitRecord intersect_sphere(parser::Sphere &sphere, parser::Ray &ray, par
 parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parser::Scene &scene, int material_id)
 {
     parser::HitRecord hit_record;
-    float angle_between_normal_and_ray = dot_product(face.normal, ray.d);
-    if (angle_between_normal_and_ray >= 0)
-    {
-        hit_record.is_intersected = false;
-        return hit_record;
-    }
+    // float angle_between_normal_and_ray = dot_product(face.normal, ray.d);
+    // if (angle_between_normal_and_ray >= 0)
+    // {
+    //     hit_record.is_intersected = false;
+    //     return hit_record;
+    // }
 
     parser::Vec3f a = scene.vertex_data[face.v0_id - 1];
     parser::Vec3f b = scene.vertex_data[face.v1_id - 1];
@@ -206,7 +206,7 @@ parser::HitRecord intersect_triangle(parser::Face &face, parser::Ray &ray, parse
 
     // 3. If all conditions are met, then there is an intersection
     // 0 <= beta, 0 <= gamma, 0 <= beta + gamma <= 1, t > 0
-    if ((beta + gamma <= 1) && beta >= 0 && gamma >= 0 && t > EPSILON)
+    if ((beta + gamma <= 1) && beta >= 0 && gamma >= 0)
     {
         hit_record.is_intersected = true;
         hit_record.intersection_point = ray.getPointFromTime(t);
@@ -225,6 +225,7 @@ parser::HitRecord find_nearest_intersection(parser::Scene &scene, parser::Ray &r
 {
     float min_distance = std::numeric_limits<float>::max();
     parser::HitRecord min_hit_record = parser::HitRecord{.t = min_distance, .is_intersected = false};
+    
     // Loop through all meshes, triangles and spheres
     for (parser::Mesh mesh : scene.meshes)
     {
@@ -269,15 +270,17 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
     parser::Vec3f final_color = multiply_vector_with_vector(scene.ambient_light, material.ambient);
     // if (material.is_mirror)
     // {
-    //     parser::Vec3f out_going_ray = multiply_scalar_with_vector(-1, ray.d);
-    //     parser::Vec3f n_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, out_going_ray) * 2, hit_record.normal);
-    //     parser::Vec3f mirror_ray_direction = add_vectors(ray.d, n_cos_theta);
-    //     // parser::Ray mirror_ray;
-    //     // mirror_ray.e = hit_record.intersection_point;
-    //     // mirror_ray.d = mirror_ray_direction;
-    //     // mirror_ray.depth = ray.depth + 1;
-    //     // parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
-    //     // final_color = add_vectors(final_color, multiply_vector_with_vector(material.mirror, mirror_color));
+    //     parser::Ray mirror_ray;
+    //     parser::Vec3f w_o = multiply_scalar_with_vector(-1, ray.d);
+    //     parser::Vec3f n2_cos_theta = multiply_scalar_with_vector(dot_product(hit_record.normal, w_o) * 2, hit_record.normal);
+    //     mirror_ray.d = add_vectors(ray.d, n2_cos_theta);
+    //     mirror_ray.e = multiply_scalar_with_vector(scene.shadow_ray_epsilon, hit_record.normal);
+    //     mirror_ray.e = add_vectors(hit_record.intersection_point, mirror_ray.e);
+    //     mirror_ray.depth += 1;
+
+    //     parser::Vec3f mirror_color = compute_color(mirror_ray, scene);
+    //     mirror_color = multiply_vector_with_vector(material.mirror, mirror_color);
+    //     final_color = add_vectors(final_color, mirror_color);
     // }
 
     for (int point_light_num = 0; point_light_num < scene.point_lights.size(); point_light_num++)
@@ -285,15 +288,12 @@ parser::Vec3f apply_shading(parser::Scene &scene, parser::Ray &ray, parser::HitR
         parser::PointLight point_light = scene.point_lights[point_light_num];
 
         // Check if the object is in shadow or not
-        if (is_in_shadow(scene, hit_record, point_light))
-        {
-            continue;
-        }
+        // if (is_in_shadow(scene, hit_record, point_light))
+        // {
+        //     continue;
+        // }
         parser::Vec3f diffuse_color = compute_diffuse_shading(material, hit_record.normal, hit_record.intersection_point, point_light);
         parser::Vec3f specular_color = compute_specular_shading(material, ray, hit_record.normal, hit_record.intersection_point, point_light);
-
-        // std::cout << "diffuse_color: " << diffuse_color.x << " " << diffuse_color.y << " " << diffuse_color.z << std::endl;
-        // std::cout << "specular_color: " << specular_color.x << " " << specular_color.y << " " << specular_color.z << std::endl;
         final_color = add_vectors(final_color, diffuse_color);
         final_color = add_vectors(final_color, specular_color);
     }

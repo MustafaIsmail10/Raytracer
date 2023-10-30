@@ -1,1 +1,1 @@
- ../test_scenes/inputs/simple_shading.xml
+ ../test_scenes/inputs/car.xml
